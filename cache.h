@@ -2,13 +2,58 @@
 #define CACHE_H
 
 #include <string>
+#include <sstream>
+#include <iostream>
 
 #define CACHE_SIZE 10
 
-class Cache {
+class Cache
+{
 private:
-  // TODO: private inner struct/class 선언 가능
-  // TODO: private 멤버 변수와 함수 추가 가능
+
+  // cacheStruct 내 value값의 타입을 알려주는 변수
+  enum Type
+  {
+    INT,
+    DOUBLE,
+    NONE
+  };
+
+  // cache의 element
+  struct cacheStruct
+  {
+    std::string key;
+    Type type;
+    void *value;
+
+    cacheStruct *preCache;
+    cacheStruct *nextCache;
+    
+    ~cacheStruct() // 구조체 삭제
+    {
+      if (this->type == INT)
+      {
+        delete static_cast<int *>(value);
+      }
+      else if (this->type == DOUBLE)
+      {
+
+        delete static_cast<double *>(value);
+      }
+    }
+  };
+
+  // 시작 cache값
+  cacheStruct *startCache;
+
+  // cache의 크기를 검사하는 함수
+  // 만일 CACHE_SIZE보다 크면 맨 마지막 cache값을 지우는 역활을 한다.
+  // 매 add 함수 호출 시에 해당 함수가 호출된다.
+  void checkCacheSize();
+
+  // cache값이 사용되었을 때, 사용한 값을 맨 위로 올리는 기능
+  // 매 get 함수 호출 시 해당 함수가 사용된다.
+  void update(cacheStruct *_updateCache);
 
 public:
   Cache();
