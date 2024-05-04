@@ -1,6 +1,6 @@
 #include "cache.h"
 
-Cache::Cache()
+Cache::Cache() : hash(CACHE_SIZE)
 {
     // cache construct 호출 시, null 값을 새로 생성한다.
     // 타입은 비어 있는 None 값을 넣는다.
@@ -37,6 +37,9 @@ void Cache::add(std::string key, int value)
 
     startCache->preCache = _tmpStruct;  // 구)시작cache 값의 이전값 ==> 신) 새로운 값
     startCache = _tmpStruct;            // 구)시작cache 값 ==> 신) 새로운 값 주소값
+    
+    hash.add(key, _tmpStruct); // hash 추가
+
     checkCacheSize();
 }
 
@@ -54,44 +57,38 @@ void Cache::add(std::string key, double value)
 
     startCache->preCache = _tmpStruct;  // 구)시작cache 값의 이전값 ==> 신) 새로운 값
     startCache = _tmpStruct;            // 구)시작cache 값 ==> 신) 새로운 값 주소값
+    
+    hash.add(key, _tmpStruct); // hash 추가
+
     checkCacheSize();
 }
 
 bool Cache::get(std::string key, int &value)
 {
-    cacheStruct *_findCache = startCache;
-    while (_findCache != NULL)
+    void *_tmpCache;
+    bool isContain = hash.get(key, _tmpCache);
+
+    cacheStruct *_findCache = (cacheStruct *)_tmpCache;
+    if (_findCache->key == key && _findCache->type == INT)
     {
-        if (_findCache->key == key && _findCache->type == INT)  
-        {
-            update(_findCache); // 가져온 값 맨 앞으로 이동
-            value = *(int *)_findCache->value; // value 값 대입
-
-            return true;
-        }
-        _findCache = _findCache->nextCache;
+        update(_findCache);                   // 가져온 값 맨 앞으로 이동
+        value = *(int *)_findCache->value; // value 값 대입
     }
-
-    return false;
+    return isContain;
 }
 
 bool Cache::get(std::string key, double &value)
 {
-    cacheStruct *_findCache = startCache;
+    void *_tmpCache;
+    bool isContain = hash.get(key, _tmpCache);
 
-    while (_findCache != NULL)
+    cacheStruct *_findCache = (cacheStruct *)_tmpCache;
+    if (_findCache->key == key && _findCache->type == DOUBLE)
     {
-        if (_findCache->key == key && _findCache->type == DOUBLE)
-        {
-            update(_findCache); // 가져온 값 맨 앞으로 이동
-            value = *(double *)_findCache->value; // value 값 대입
-
-            return true;
-        }
-        _findCache = _findCache->nextCache;
+        update(_findCache);                   // 가져온 값 맨 앞으로 이동
+        value = *(double *)_findCache->value; // value 값 대입
     }
-
-    return false;
+    return isContain;
 }
 
 void Cache::checkCacheSize()
@@ -107,6 +104,8 @@ void Cache::checkCacheSize()
 
     if (count == CACHE_SIZE) // cache의 크기가 cache_size와 같으면 맨 마지막 값을 삭제
     {
+        hash.del(_curCache->key); // cache와 함께 hash 삭제
+
         (_curCache->preCache)->nextCache = NULL;
         delete _curCache;
     }

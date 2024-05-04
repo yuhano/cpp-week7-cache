@@ -4,12 +4,15 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include "hash.h"
 
 #define CACHE_SIZE 10
 
 class Cache
 {
 private:
+  // Enhanced cache을 위한 Hash 함수
+  Hash hash;
 
   // cacheStruct 내 value값의 타입을 알려주는 변수
   enum Type
